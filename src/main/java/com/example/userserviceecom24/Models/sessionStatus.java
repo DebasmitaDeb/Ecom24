@@ -1,7 +1,8 @@
 package com.example.userserviceecom24.Models;
 
 public enum sessionStatus {
-    ACTIVE, // 1
-    Expired, //2
-    LoggedOut, //3
+    ACTIVE, //0
+    EXPIRED, //1
+    LOGGEDOUT,//2
+    INVALID, //3
 }

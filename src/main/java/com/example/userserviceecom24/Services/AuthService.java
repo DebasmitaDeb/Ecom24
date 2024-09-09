@@ -27,9 +27,9 @@ import java.util.Optional;
 @Service
 public class AuthService {
 
-    private static UserRepository userRepository;
-    private static BCryptPasswordEncoder bCryptPasswordEncoder;
-    private static SessionRepository sessionRepository;
+    private UserRepository userRepository;
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private SessionRepository sessionRepository;
 
     public AuthService(UserRepository userRepository, SessionRepository sessionRepository) {
         this.userRepository = userRepository;
@@ -37,7 +37,7 @@ public class AuthService {
         this.sessionRepository = sessionRepository;
     }
 
-    public static UserDto signUp(String email, String password) throws UserExistsException {
+    public UserDto signUp(String email, String password) throws UserExistsException {
         Optional<User> optionalUser = Optional.ofNullable(userRepository.findByEmail(email));
         if (!optionalUser.isEmpty()) {
             throw new UserExistsException("User with " + email + " already exists.");
@@ -52,7 +52,7 @@ public class AuthService {
         return UserDto.from(savedUser);
     }
 
-    public static ResponseEntity<UserDto> logIn(String email, String password) throws UserDoesNotExistsException {
+    public ResponseEntity<UserDto> logIn(String email, String password) throws UserDoesNotExistsException {
         Optional<User> optionalUser = Optional.ofNullable(userRepository.findByEmail(email));
         if (optionalUser.isEmpty()) {
             throw new UserDoesNotExistsException("User with " + email + " does not exists");
@@ -81,5 +81,17 @@ public class AuthService {
                 HttpStatus.OK
         );
         return response;
+    }
+
+    public sessionStatus validate(String token, Long userId) {
+        Optional<Session> optionalSession = sessionRepository.findByTokenAndUser_Id(token, userId);
+        if (optionalSession.isEmpty()) {
+            return sessionStatus.INVALID;
+        }
+        Session session = optionalSession.get();
+        if(!session.getSessionStatus().equals(sessionStatus.ACTIVE)){
+            return sessionStatus.EXPIRED;
+        }
+        return sessionStatus.ACTIVE;
     }
 }
