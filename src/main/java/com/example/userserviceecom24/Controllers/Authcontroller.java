@@ -1,9 +1,6 @@
 package com.example.userserviceecom24.Controllers;
 
-import com.example.userserviceecom24.Dtos.LoginRequestDto;
-import com.example.userserviceecom24.Dtos.SignUpRequestDto;
-import com.example.userserviceecom24.Dtos.UserDto;
-import com.example.userserviceecom24.Dtos.ValidateTokenRequestDto;
+import com.example.userserviceecom24.Dtos.*;
 import com.example.userserviceecom24.Exceptions.UserDoesNotExistsException;
 import com.example.userserviceecom24.Exceptions.UserExistsException;
 import com.example.userserviceecom24.Models.sessionStatus;
@@ -14,6 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
@@ -39,9 +38,17 @@ public class Authcontroller {
     }
 
     @PostMapping("/validate")
-    public ResponseEntity<sessionStatus> validateToken(@RequestBody ValidateTokenRequestDto request) {
-        sessionStatus newsessionStatus = authService.validate(request.getToken(),request.getUserId());
-        return new ResponseEntity<>(newsessionStatus, HttpStatus.OK);
+    public ResponseEntity<ValidateTokenResponseDto> validateToken(@RequestBody ValidateTokenRequestDto request) {
+        Optional<UserDto> userDto  = authService.validate(request.getToken(),request.getUserId());
+        if (userDto.isEmpty()) {
+            ValidateTokenResponseDto response = new ValidateTokenResponseDto();
+            response.setSessionstatus(sessionStatus.INVALID);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+        ValidateTokenResponseDto response = new ValidateTokenResponseDto();
+        response.setSessionstatus(sessionStatus.ACTIVE);
+        response.setUserDto(userDto.get());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
 }

@@ -83,15 +83,17 @@ public class AuthService {
         return response;
     }
 
-    public sessionStatus validate(String token, Long userId) {
+    public Optional<UserDto> validate(String token, Long userId) {
         Optional<Session> optionalSession = sessionRepository.findByTokenAndUser_Id(token, userId);
         if (optionalSession.isEmpty()) {
-            return sessionStatus.INVALID;
+            return Optional.empty();
         }
         Session session = optionalSession.get();
         if(!session.getSessionStatus().equals(sessionStatus.ACTIVE)){
-            return sessionStatus.EXPIRED;
+            return Optional.empty();
         }
-        return sessionStatus.ACTIVE;
+        User user = userRepository.findById(userId);
+        UserDto userDto = UserDto.from(user);
+        return Optional.of(userDto);
     }
 }
