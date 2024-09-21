@@ -16,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMapAdapter;
 
@@ -28,24 +29,24 @@ import java.util.Optional;
 public class AuthService {
 
     private UserRepository userRepository;
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private PasswordEncoder passwordEncoder;
     private SessionRepository sessionRepository;
 
-    public AuthService(UserRepository userRepository, SessionRepository sessionRepository) {
+    public AuthService(UserRepository userRepository, SessionRepository sessionRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-        this.bCryptPasswordEncoder = new BCryptPasswordEncoder();
+        this.passwordEncoder = passwordEncoder;
         this.sessionRepository = sessionRepository;
     }
 
     public UserDto signUp(String email, String password) throws UserExistsException {
-        Optional<User> optionalUser = Optional.ofNullable(userRepository.findByEmail(email));
+        Optional<User> optionalUser = userRepository.findByEmail(email);
         if (!optionalUser.isEmpty()) {
             throw new UserExistsException("User with " + email + " already exists.");
         }
 
         User user = new User();
         user.setEmail(email);
-        user.setPasword(bCryptPasswordEncoder.encode(password));
+        user.setPasword(passwordEncoder.encode(password));
 
         User savedUser = userRepository.save(user);
 
@@ -53,13 +54,13 @@ public class AuthService {
     }
 
     public ResponseEntity<UserDto> logIn(String email, String password) throws UserDoesNotExistsException {
-        Optional<User> optionalUser = Optional.ofNullable(userRepository.findByEmail(email));
+        Optional<User> optionalUser = userRepository.findByEmail(email);
         if (optionalUser.isEmpty()) {
             throw new UserDoesNotExistsException("User with " + email + " does not exists");
         }
         ;
         User user = optionalUser.get();
-        if (!bCryptPasswordEncoder.matches(password, user.getPasword())) {
+        if (!passwordEncoder.matches(password, user.getPasword())) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         ;
