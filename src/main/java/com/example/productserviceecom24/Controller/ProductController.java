@@ -10,12 +10,16 @@ import com.example.productserviceecom24.Models.Product;
 import com.example.productserviceecom24.Services.ProductService;
 import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class ProductController {
@@ -45,25 +49,40 @@ public class ProductController {
 
 //    GET/products/id
     @GetMapping("/products/{id}")
-    public Product getProductDetails(@PathVariable("id") Long productID){
-         return productService.getSingleProduct(productID);
+    public ResponseEntity<Product> getProductDetails(@PathVariable("id") Long productID){
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+
+        headers.add(
+                "auth-token", "noaccess4uheyhey"
+        );
+//        Optional<Product> productOptional = productService.getSingleProduct(productID);
+
+
+        ResponseEntity<Product> response = new ResponseEntity(
+                productService.getSingleProduct(productID),
+                headers,
+                HttpStatus.OK
+        );
+
+        return response;
+
     }
 
     @GetMapping("/products")
     public ResponseEntity<List<Product>> getAllProducts(@Nullable @RequestHeader("Auth_Token") String token,
                                                         @Nullable @RequestHeader("User_Id") Long userId){
-        if(token == null|| userId== null){ return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); }
+//        if(token == null|| userId== null){ return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); }
 
-        ValidateTokenResponseDto response = authenticationClient.validate(token, userId);
-        if (response.getSessionstatus().equals(sessionStatus.INVALID)){
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
-
-        boolean isUserAdmin = false;
-        for(Role role : response.getUserDto().getRoles()){
-            if(role.getRole().equals("ADMIN")){isUserAdmin = true;}
-        }
-        if(!isUserAdmin){return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);}
+//        ValidateTokenResponseDto response = authenticationClient.validate(token, userId);
+//        if (response.getSessionstatus().equals(sessionStatus.INVALID)){
+//            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+//        }
+//
+//        boolean isUserAdmin = false;
+//        for(Role role : response.getUserDto().getRoles()){
+//            if(role.getRole().equals("ADMIN")){isUserAdmin = true;}
+//        }
+//        if(!isUserAdmin){return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);}
         List<Product> products = productService.getAllProducts();
         return new ResponseEntity<>( products, HttpStatus.OK);
     }
