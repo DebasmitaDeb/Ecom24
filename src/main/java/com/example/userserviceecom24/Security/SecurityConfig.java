@@ -80,11 +80,13 @@ public class SecurityConfig {
                 throws Exception {
             http
                     .authorizeHttpRequests((authorize) -> authorize
-                            .anyRequest().authenticated()
+                            .anyRequest().permitAll()
                     )
                     // Form login handles the redirect to the login page from the
                     // authorization server filter chain
-                    .formLogin(Customizer.withDefaults());
+                    .formLogin(Customizer.withDefaults())
+                    .csrf().disable()
+                    .cors().disable();
 
             return http.build();
         }
