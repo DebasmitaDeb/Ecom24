@@ -17,4 +17,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     List<Product> findAllByCategory_TitleIsLike(String categoryname);
 
+    List<Product> findByTitleContaining(String query);
 }
